@@ -1,0 +1,240 @@
+clear
+clc
+n=input('Enter population value =');
+r=input('Enter selection value =');
+z=10/(2^10);
+k=(2^10);
+secilimyontemi=input('Please choose selection method  (roulette=1, rank=2 and tournament=3) =');
+kromozomlar=logical(dec2bin(0:k-1,10)-'0');
+
+%Function >>> F(x,y)=A*x+B*y+C*sin(x)+D*cos(y);
+A=input('Specify the coefficient A =');
+B=input('Specify the coefficient B ='); 
+C=input('Specify the coefficient C =');
+D=input('Specify the coefficient D =');
+x=(10*rand(1,n));
+y=10*rand(1,n)-5;
+
+
+%Real number fitness function 
+for i=1:n
+    F(i)=A*x(i)+B*y(i)+C*sin(x(i))+D*cos(y(i));
+end
+plot (F(:,:))
+xlabel('Population Value')
+title('Function Graph')
+
+% Selection processes 
+secimtoplami=0;
+for j=1:n
+    secimtoplami=secimtoplami+F(j); % the sum of the fitness values of n numbers 
+end
+for j=1:n
+    uygunlukoranlari(j)=F(j)/secimtoplami; % Unit sum of fitness values of n numbers 
+end
+
+kumilatiftoplam(1)=uygunlukoranlari(1);
+for j=2:n
+    kumilatiftoplam(j)=uygunlukoranlari(j)+kumilatiftoplam(j-1); % Cumulative sum of n fitness values 
+end
+for k=1:n
+uygunlukoranlari(k);
+end
+uygunlukoranlari
+
+% Roulette wheel selection
+if secilimyontemi==1
+    
+secimrulet=rand(1,r); %A number as many as the number in the r fitness range between 0-1 is selected
+for i=1:r
+    for j=1:n
+    if secimrulet(i)<kumilatiftoplam(j)
+        secilimoranlari(i)=kumilatiftoplam(j);
+        xsecilim(i)=x(j);
+        ysecilim(i)=y(j);
+        Fsecilim(i)=F(j);
+        break;
+    end
+    end
+end
+
+ %Rank   
+ elseif secilimyontemi==2
+     
+%Ranking of fitness rates 
+for i=1:(n)
+for j=1:(n-i)
+if uygunlukoranlari(j)>uygunlukoranlari(j+1)
+gecici=uygunlukoranlari(j);
+gecicix=x(j);
+geciciy=y(j);
+geciciF=F(j);
+uygunlukoranlari(j)=uygunlukoranlari(j+1);
+x(j)=x(j+1);
+y(j)=y(j+1);
+F(j)=F(j+1);
+uygunlukoranlari(j+1)=gecici;
+x(j+1)=gecicix;
+y(j+1)=geciciy;
+F(j+1)=geciciF;
+end
+end
+end
+for k=1:n
+uygunlukoranlari(k);
+end
+uygunlukoranlari
+
+%Arithmetic numbers are assigned to fitness values. 
+sayitoplami=0;
+for k=1:n
+rankuygunluk(k)=k;
+sayitoplami=sayitoplami+k;
+end
+
+for k=1:n
+rankuygunlukoran(k)=(rankuygunluk(k)/sayitoplami);
+end
+rankkumilatiftoplam(1)=rankuygunlukoran(1);
+for j=2:n
+    rankkumilatiftoplam(j)=rankuygunlukoran(j)+rankkumilatiftoplam(j-1); % Cumulative sum of n fitness values 
+end
+
+secimrank=rand(1,r); %A number as many as the number in the r fitness range between 0-1 is selected
+
+%-----------------
+for i=1:r
+    for j=1:n
+    if secimrank(i)<rankkumilatiftoplam(j)
+        secilimoranlari(i)=rankkumilatiftoplam(j);
+        xsecilim(i)=x(j);
+        ysecilim(i)=y(j);  
+        Fsecilim(i)=F(j);
+        break;
+    end
+    end
+end
+
+else secilimyontemi==3
+    
+%Tournament selection 
+for i=1:r
+    secimtur=round(1+(n-1)*rand(1,2)); %Generating two random numbers between 1-n     
+    if uygunlukoranlari(secimtur(1))>uygunlukoranlari(secimtur(2))
+        fprintf('the number with the highest selection from the fitness values in the tournament=%f\n',uygunlukoranlari(secimtur(1)));
+        secilimoranlari(i)=uygunlukoranlari(secimtur(1));
+        xsecilim(i)=x(secimtur(1));
+        ysecilim(i)=y(secimtur(1));
+        Fsecilim(i)=F(secimtur(1));
+    else
+        fprintf('the number with the highest selection from the fitness values in the tournament=%f\n',uygunlukoranlari(secimtur(2)));
+        secilimoranlari(i)=uygunlukoranlari(secimtur(2));
+        xsecilim(i)=x(secimtur(2));
+        ysecilim(i)=y(secimtur(2));
+        Fsecilim(i)=F(secimtur(2));
+    end 
+end
+end
+
+%Crossover
+for i=1:r
+    ebeveyn(i,1)=xsecilim(i);
+    ebeveyn(i,2)= ysecilim(i);
+end
+caprazlamayontemi=input('Please choose the crossover method (arithmetic=1, heuristic=2) =');
+
+%If the selection is an even number 
+if mod(r,2)==0 
+
+%Arithmetic crossover 
+if caprazlamayontemi==1    
+        
+    for i=1:2:r
+        a=rand(1,1);  %A number between 0-1 is selected
+        cocuklar(i,1)=a*ebeveyn(i,1)+ebeveyn((i+1),1)*(1-a);
+        cocuklar(i+1,1)=(1-a)*ebeveyn(i,1)+ebeveyn((i+1),1)*a;
+        cocuklar(i,2)=a*ebeveyn(i,2)+ebeveyn((i+1),2)*(1-a);
+        cocuklar(i+1,2)=(1-a)*ebeveyn(i,2)+ebeveyn((i+1),2)*a;
+    end
+else caprazlamayontemi==2
+    
+    %Heuristic crossover 
+   for i=1:2:r
+        a=rand(1,1);  %A number between 0-1 is selected
+        if Fsecilim(i)>Fsecilim(i+1)
+        cocuklar(i,1)=ebeveyn(i,1)+a*(ebeveyn(i,1)-ebeveyn(i+1,1));
+        cocuklar(i,2)=ebeveyn(i,2)+a*(ebeveyn(i,2)-ebeveyn(i+1,2));
+        cocuklar(i+1,:)=ebeveyn(i,:);
+        else
+        cocuklar(i,1)=ebeveyn(i+1,1)+a*(ebeveyn(i+1,1)-ebeveyn(i,1));
+        cocuklar(i,2)=ebeveyn(i+1,2)+a*(ebeveyn(i+1,2)-ebeveyn(i,2));
+        cocuklar(i+1,:)=ebeveyn(i+1,:);
+        end
+   end
+end
+
+%If the selection is an odd number 
+else 
+   %Arithmetic crossover 
+   if caprazlamayontemi==1    
+        
+   for i=1:2:r-1
+        a=rand(1,1);  %A number between 0-1 is selected
+        cocuklar(i,1)=a*ebeveyn(i,1)+ebeveyn((i+1),1)*(1-a);
+        cocuklar(i+1,1)=(1-a)*ebeveyn(i,1)+ebeveyn((i+1),1)*a;
+        cocuklar(i,2)=a*ebeveyn(i,2)+ebeveyn((i+1),2)*(1-a);
+        cocuklar(i+1,2)=(1-a)*ebeveyn(i,2)+ebeveyn((i+1),2)*a;
+    end
+   else caprazlamayontemi==2
+    
+    %Heuristic crossover 
+   for i=1:2:r-1
+        a=rand(1,1);  %A number between 0-1 is selected
+        if Fsecilim(i)>Fsecilim(i+1)
+        cocuklar(i,1)=ebeveyn(i,1)+a*(ebeveyn(i,1)-ebeveyn(i+1,1));
+        cocuklar(i,2)=ebeveyn(i,2)+a*(ebeveyn(i,2)-ebeveyn(i+1,2));
+        cocuklar(i+1,:)=ebeveyn(i,:);
+        else
+        cocuklar(i,1)=ebeveyn(i+1,1)+a*(ebeveyn(i+1,1)-ebeveyn(i,1));
+        cocuklar(i,2)=ebeveyn(i+1,2)+a*(ebeveyn(i+1,2)-ebeveyn(i,2));
+        cocuklar(i+1,:)=ebeveyn(i+1,:);
+        end
+    end
+   end
+       cocuklar(r,:)=ebeveyn(r,:);
+end
+
+%MUTATION
+%sorting is done and the best individuals are selected. 
+for i=1:(n)
+for j=1:(n-i)
+if F(j)>F(j+1)
+gecici=F(j);
+gecicix=x(j);
+geciciy=y(j);
+F(j)=F(j+1);
+x(j)=x(j+1);
+y(j)=y(j+1);
+F(j+1)=gecici;
+x(j+1)=gecicix;
+y(j+1)=geciciy;
+end
+end
+end
+for i=(r+1):n
+    cocuklar(i,1)=x(i);
+    cocuklar(i,2)=y(i);
+end
+mutasyondegeri=1/n;
+for i=1:n
+    mutasyonorani=rand(1,1); %A number between 0-1 is selected
+       if mutasyonorani<mutasyondegeri
+           cocuklar(i,1)=(10*rand(1,1));
+       end
+end
+for i=1:n
+     mutasyonorani=rand(1,1); %A number between 0-1 is selected
+       if mutasyonorani<mutasyondegeri
+           cocuklar(i,2)=10*rand(1,1)-5;
+       end
+end
